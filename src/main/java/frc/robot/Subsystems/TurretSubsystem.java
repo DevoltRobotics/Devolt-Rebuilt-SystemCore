@@ -9,26 +9,25 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.math.controller.PIDController;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.smartdashboard.Mechanism2d;
+import org.wpilib.smartdashboard.MechanismLigament2d;
+import org.wpilib.smartdashboard.MechanismRoot2d;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
+import org.wpilib.command2.InstantCommand;
+import org.wpilib.command2.SubsystemBase;
 
 public class TurretSubsystem extends SubsystemBase {
 
@@ -60,7 +59,7 @@ public class TurretSubsystem extends SubsystemBase {
       1.0,
       0,
       6,
-      new Color8Bit(Color.kBlue)));
+      new Color8Bit(Color.BLUE)));
 
   // Rojo = setpoint (deseado)
   private final LoggedMechanismLigament2d targetLigament = root.append(new LoggedMechanismLigament2d(
@@ -68,7 +67,7 @@ public class TurretSubsystem extends SubsystemBase {
       1.2,
       0,
       4,
-      new Color8Bit(Color.kRed)));
+      new Color8Bit(Color.RED)));
 
   // Verde / Naranja = límites (visuales)
   private final LoggedMechanismLigament2d upperLimitLigament = root.append(new LoggedMechanismLigament2d(
@@ -76,14 +75,14 @@ public class TurretSubsystem extends SubsystemBase {
       1.35,
       90,
       2,
-      new Color8Bit(Color.kGreen)));
+      new Color8Bit(Color.GREEN)));
 
   private final LoggedMechanismLigament2d lowerLimitLigament = root.append(new LoggedMechanismLigament2d(
       "LowerLimit",
       1.35,
       -270,
       2,
-      new Color8Bit(Color.kOrange)));
+      new Color8Bit(Color.ORANGE)));
   // ------------------------------------------------
 
   public TurretSubsystem(int canId, Translation2d turretOffset) {
@@ -102,12 +101,12 @@ public class TurretSubsystem extends SubsystemBase {
 
     Logger.recordOutput(getName() + "/TurretMechanism2d", mech);
 
-    resetOffsetCMD().schedule();
+    CommandScheduler.getInstance().schedule(resetOffsetCMD());
   }
 
   @Override
   public void periodic() {
-    turretRelativePos = Lturret.getEncoder().getPosition() - turretOffsetEnc;
+    turretRelativePos = Lturret.getEncoder().getPosition().get() - turretOffsetEnc;
 
     if (desiredAngle > Upperlimit) {
       normalizedAngle = desiredAngle - 360;
@@ -120,7 +119,7 @@ public class TurretSubsystem extends SubsystemBase {
     turretPidController.setSetpoint(normalizedAngle);
 
     double pidOut = turretPidController.calculate(turretRelativePos);
-    TurretOut = MathUtil.clamp(pidOut, -0.5, 0.5);
+    TurretOut = Math.clamp(pidOut, -0.5, 0.5);
 
     if (turretRelativePos >= Upperlimit && TurretOut > 0) {
       TurretOut = 0;
@@ -129,17 +128,17 @@ public class TurretSubsystem extends SubsystemBase {
       TurretOut = 0;
     }
 
-    Lturret.set(TurretOut);
+    Lturret.setThrottle(TurretOut);
 
     turretLigament.setAngle(turretRelativePos);
     targetLigament.setAngle(normalizedAngle);
     upperLimitLigament.setAngle(Upperlimit);
     lowerLimitLigament.setAngle(Lowerlimit);
 
-    SmartDashboard.putNumber("Turret/RelPos", turretRelativePos);
-    SmartDashboard.putNumber("Turret/Desired", desiredAngle);
-    SmartDashboard.putNumber("Turret/Norm", normalizedAngle);
-    SmartDashboard.putNumber("Turret/Out", TurretOut);
+    Logger.recordOutput("Turret/RelPos", turretRelativePos);
+    Logger.recordOutput("Turret/Desired", desiredAngle);
+    Logger.recordOutput("Turret/Norm", normalizedAngle);
+    Logger.recordOutput("Turret/Out", TurretOut);
   }
 
   public Rotation2d getAngle() {
@@ -151,7 +150,7 @@ public class TurretSubsystem extends SubsystemBase {
   }
 
   public void resetOffset() {
-    turretOffsetEnc = Lturret.getEncoder().getPosition();
+    turretOffsetEnc = Lturret.getEncoder().getPosition().get();
   }
 
   public Command resetOffsetCMD() {

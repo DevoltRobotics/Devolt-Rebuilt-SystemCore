@@ -4,14 +4,15 @@ import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.system.Timer;
+import org.wpilib.command2.Command;
+import org.wpilib.driverstation.Alliance;
+import org.wpilib.driverstation.DriverStation;
+import org.wpilib.driverstation.MatchState;
+
 import frc.robot.ShooterController;
 import frc.robot.ShooterController.ShooterResult;
 import frc.robot.Subsystems.CommandSwerveDrivetrain;
@@ -36,7 +37,7 @@ public class SOTFCommand extends Command {
 
   private boolean getAlliance = false;
 
-  private double lastTime = Timer.getFPGATimestamp();
+  private double lastTime = Timer.getMonotonicTimestamp();
   private double avgDt = 0.02;
 
   public SOTFCommand(
@@ -51,23 +52,23 @@ public class SOTFCommand extends Command {
 
   @Override
   public void execute() {
-    double now = Timer.getFPGATimestamp();
+    double now = Timer.getMonotonicTimestamp();
     double dt = now - lastTime;
     lastTime = now;
 
     // filtro para que no brinque
     avgDt = 0.9 * avgDt + 0.1 * dt;
 
-    SmartDashboard.putNumber(turret.getName() + "/SOTF/dt", dt);
-    SmartDashboard.putNumber(turret.getName() + "/SOTF/avgDt", avgDt);
-    Optional<Alliance> alliance = DriverStation.getAlliance();
+    Logger.recordOutput(turret.getName() + "/SOTF/dt", dt);
+    Logger.recordOutput(turret.getName() + "/SOTF/avgDt", avgDt);
+    Optional<Alliance> alliance = MatchState.getAlliance();
 
     if (alliance.isPresent() && !getAlliance) {
-      if (alliance.get() == Alliance.Red) {
+      if (alliance.get() == Alliance.RED) {
         Goal_X = Goal_X_Red;
         Goal_Y = Goal_Y_Red;
         getAlliance = true;
-      } else if (alliance.get() == Alliance.Blue) {
+      } else if (alliance.get() == Alliance.BLUE) {
         Goal_X = Goal_X_Blue;
         Goal_Y = Goal_Y_Blue;
         getAlliance = true;
@@ -77,7 +78,7 @@ public class SOTFCommand extends Command {
       }
     }
     Pose2d pose = drivetrain.getState().Pose;
-    ChassisSpeeds speeds = drivetrain.getState().Speeds;
+    ChassisVelocities speeds = drivetrain.getState().Velocity;
 
     Translation2d rotatedTurretOffset = turret.turretOffset.rotateBy(pose.getRotation());
     Translation2d turretFieldPos = pose.getTranslation().plus(rotatedTurretOffset);
@@ -88,9 +89,7 @@ public class SOTFCommand extends Command {
     Logger.recordOutput("Chasis speed vamg", Math.hypot(speeds.vx, speeds.vy));
 
 
-
-
-    Logger.recordOutput(turret.getName() + "/SOTF/turretFieldPos", new Pose2d(turretFieldPos, pose.getRotation().plus(turret.getAngle())));
+    Logger.recordOutput(turret.getN() + "/SOTF/turretFieldPos", new Pose2d(turretFieldPos, pose.getRotation().plus(turret.getAngle())));
 
     ShooterResult result = ShooterController.calculate(
         turretFieldPos,

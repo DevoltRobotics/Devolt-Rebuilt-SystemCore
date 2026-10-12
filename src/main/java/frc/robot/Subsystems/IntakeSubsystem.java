@@ -12,20 +12,21 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.AbsoluteEncoderConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.networktables.DoubleSubscriber;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.math.controller.PIDController;
+import org.wpilib.networktables.DoubleSubscriber;
+import org.wpilib.networktables.NetworkTableInstance;
+import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.InstantCommand;
+import org.wpilib.command2.SubsystemBase;
 import frc.robot.Constants.CANId.CAN_s1;
 
 public class IntakeSubsystem extends SubsystemBase {
@@ -69,12 +70,8 @@ public class IntakeSubsystem extends SubsystemBase {
     pivotConfig
       .inverted(true)
       .idleMode(IdleMode.kBrake);
-    pivotConfig.absoluteEncoder
-      .positionConversionFactor(1);
-      
-      
-
-      pivot.configure(pivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        
+    pivot.configure(pivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     rollerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     rollerConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -95,7 +92,6 @@ public class IntakeSubsystem extends SubsystemBase {
     kDSub = table.getDoubleTopic("kD").subscribe(kD);
 
     pivotPID.setTolerance(tolerance);
-
   }
 
   @Override
@@ -119,25 +115,22 @@ public class IntakeSubsystem extends SubsystemBase {
       
     }
 
-    if (pivotEncoder.getPosition() > 0.382) {
-      pivot.set(0);
+    if (pivotEncoder.getPosition().get() > 0.382) {
+      pivot.setThrottle(0);
     }else{
-    pivot.set(PivotOut);
+    pivot.setThrottle(PivotOut);
     }
-    org.littletonrobotics.junction.Logger.recordOutput("Pivot/setpoint", desiredPosition);
-    org.littletonrobotics.junction.Logger.recordOutput("Pivot/error", pivotPID.getError());
+    Logger.recordOutput("Pivot/setpoint", desiredPosition);
+    Logger.recordOutput("Pivot/error", pivotPID.getError());
 
-    SmartDashboard.putNumber("pivot/setpoint", desiredPosition);
-    SmartDashboard.putNumber("pivot/error", pivotPID.getError());
-    SmartDashboard.putNumber("pivot/output", PivotOut);
-    SmartDashboard.putNumber("pivot/Pos", pivotEncoder.getPosition());
-
-
+    Logger.recordOutput("pivot/setpoint", desiredPosition);
+    Logger.recordOutput("pivot/error", pivotPID.getError());
+    Logger.recordOutput("pivot/output", PivotOut);
+    Logger.recordOutput("pivot/Pos", pivotEncoder.getPosition().get());
   }
 
   public void setRollerSpeed(double desiredRollerSpeed){
     rollerMotor.setControl(RollerDutyCycle.withOutput(desiredRollerSpeed));
-
   }
 
   public void setPosition(double position){
@@ -148,16 +141,13 @@ public class IntakeSubsystem extends SubsystemBase {
     return new InstantCommand(() -> { setPosition(intakeDownSafePos);}, this);
   }
  
-public Command pivotDownCMD(){
-  return new InstantCommand(() -> { setPosition(intakeDownPos);}, this);
-}
+  public Command pivotDownCMD(){
+    return new InstantCommand(() -> { setPosition(intakeDownPos);}, this);
+  }
 
-public Command pivotUpCMD(){
-  return new InstantCommand(() -> setPosition(intakeUpPos), this);
-}
-
-
-  
+  public Command pivotUpCMD(){
+    return new InstantCommand(() -> setPosition(intakeUpPos), this);
+  }
 
   public Command IntakeinCMD(IntakeSubsystem intakeSubsystem){
       return new InstantCommand(()->{intakeSubsystem.setRollerSpeed(-0.7);});
@@ -165,10 +155,9 @@ public Command pivotUpCMD(){
 
   public Command IntakeOutCMD(IntakeSubsystem intakeSubsystem){
     return new InstantCommand(()->{intakeSubsystem.setRollerSpeed(0.7);});
-}
+  }
 
-public Command IntakeStopCMD(IntakeSubsystem intakeSubsystem){
-  return new InstantCommand(()->{intakeSubsystem.setRollerSpeed(0);});
-}
-
+  public Command IntakeStopCMD(IntakeSubsystem intakeSubsystem){
+    return new InstantCommand(()->{intakeSubsystem.setRollerSpeed(0);});
+  }
 }

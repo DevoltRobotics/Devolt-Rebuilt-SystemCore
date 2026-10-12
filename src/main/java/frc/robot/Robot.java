@@ -4,10 +4,9 @@ import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import org.wpilib.math.util.Units;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.CommandScheduler;
 
 public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
@@ -18,22 +17,18 @@ public class Robot extends LoggedRobot {
 
   public Robot() {
     m_robotContainer = new RobotContainer();
-  }
-
-  @Override
-  public void robotInit() {
+    
     if(isReal()) {
       Logger.addDataReceiver(new NT4Publisher());
     }
-
+    
     Logger.start();
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-      SmartDashboard.putNumber("Driver/POV", m_robotContainer.joystick.getHID().getPOV());
-
+      Logger.recordOutput("Driver/POV", m_robotContainer.joystick.getHID().getPOV());
 
     /*
      * This example of adding Limelight is very simple and may not be sufficient for on-field use.
@@ -70,7 +65,7 @@ public class Robot extends LoggedRobot {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
+      CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
   }
 
@@ -96,17 +91,6 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void teleopExit() {}
-
-  @Override
-  public void testInit() {
-    CommandScheduler.getInstance().cancelAll();
-  }
-
-  @Override
-  public void testPeriodic() {}
-
-  @Override
-  public void testExit() {}
 
   @Override
   public void simulationPeriodic() {}

@@ -6,11 +6,11 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
-import edu.wpi.first.math.interpolation.InverseInterpolator;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.interpolation.InterpolatingTreeMap;
+import org.wpilib.math.interpolation.InverseInterpolator;
+import org.wpilib.math.util.MathUtil;
 
 public class ShooterController {
 
@@ -22,8 +22,8 @@ public class ShooterController {
         new InterpolatingTreeMap<>(
             InverseInterpolator.forDouble(),
             (start, end, t) -> new ShooterParams(
-                MathUtil.interpolate(start.rps, end.rps, t),
-                MathUtil.interpolate(start.timeOfFlight, end.timeOfFlight, t)
+                MathUtil.lerp(start.rps, end.rps, t),
+                MathUtil.lerp(start.timeOfFlight, end.timeOfFlight, t)
             )
         );
 
@@ -85,7 +85,7 @@ public class ShooterController {
     }
 
     // 3) Clamp distance to LUT range & get baseline params from LUT
-    double clampedDist = MathUtil.clamp(distance, MIN_DISTANCE, MAX_DISTANCE);
+    double clampedDist = Math.clamp(distance, MIN_DISTANCE, MAX_DISTANCE);
     ShooterParams baseline = SHOOTER_INTERP_MAP.get(clampedDist);
     if (baseline == null) {
         baseline = SHOOTER_INTERP_MAP.get(MIN_DISTANCE);
@@ -102,7 +102,7 @@ public class ShooterController {
 
     // 7) SOTF vector compensation -> turret angle (2D)
     Translation2d shotVelocity = targetVelocity.minus(robotVelocity);
-    Rotation2d turretFieldAngle = shotVelocity.getAngle();
+    Rotation2d turretFieldAngle = shotVelocity.getAngle().get();
 
     // ------------------ FIX RÁPIDO PARA RPS ------------------
     // Solo compensa RPS por componente radial (acercarte/alejarte),
@@ -115,7 +115,7 @@ public class ShooterController {
 
     // Limita cuánto puede cambiar la velocidad por movimiento del robot, para evitar spikes en RPS.
     double maxExtraMps = 3.5; 
-    requiredVelocity1D = MathUtil.clamp(
+    requiredVelocity1D = Math.clamp(
         requiredVelocity1D,
         baselineVelocity - maxExtraMps,
         baselineVelocity + maxExtraMps
@@ -123,7 +123,7 @@ public class ShooterController {
  
     // Convierte velocidad->distancia efectiva->RPS usando tu LUT existente
     double effectiveDistance = velocityToEffectiveDistance(requiredVelocity1D);
-    double clampedEff = MathUtil.clamp(effectiveDistance, MIN_DISTANCE, MAX_DISTANCE);
+    double clampedEff = Math.clamp(effectiveDistance, MIN_DISTANCE, MAX_DISTANCE);
     double requiredRps = SHOOTER_INTERP_MAP.get(clampedEff).rps;
     // ---------------------------------------------------------
 
@@ -161,7 +161,7 @@ public class ShooterController {
 
     public static double calculateAdjustedRps(double requiredVelocity) {
         double effectiveDistance = velocityToEffectiveDistance(requiredVelocity);
-        double clampedEff = MathUtil.clamp(effectiveDistance, MIN_DISTANCE, MAX_DISTANCE);
+        double clampedEff = Math.clamp(effectiveDistance, MIN_DISTANCE, MAX_DISTANCE);
         return SHOOTER_INTERP_MAP.get(clampedEff).rps;
     }
 

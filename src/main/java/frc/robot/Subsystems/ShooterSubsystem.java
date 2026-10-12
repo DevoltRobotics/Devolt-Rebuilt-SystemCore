@@ -10,13 +10,13 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.InstantCommand;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.hardware.bus.CANPort;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -26,18 +26,16 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private VelocityVoltage Velocity = new VelocityVoltage(0);
   
-
   Pose2d positionInRobot = new Pose2d();
-  ChassisSpeeds Speed = new ChassisSpeeds();
+  ChassisVelocities Speed = new ChassisVelocities();
 
   private double desiredVelocity;
 
   double TurretOut = 0;
 
-
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem(int canId, Pose2d positionInRobot) {
-    Lflywheel = new TalonFX(canId, CANBus.systemCore(2));
+    Lflywheel = new TalonFX(canId, new CANBus(CANPort.CAN_D0));
 
     FlywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     FlywheelConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -57,7 +55,7 @@ public class ShooterSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     Lflywheel.setControl(Velocity.withVelocity(desiredVelocity));
-    SmartDashboard.putNumber("Shooter/Target vel", desiredVelocity);
+    Logger.recordOutput("Shooter/Target vel", desiredVelocity);
 
   }
 

@@ -10,25 +10,25 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.InstantCommand;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.hardware.discrete.DigitalInput;
+
 import frc.robot.Constants.CANId.CAN_s1;
 import frc.robot.Constants.CANId.CAN_s2;
 
 public class TransferSubsystem extends SubsystemBase {
   private DigitalInput laserLeft = new DigitalInput(0);
   private DigitalInput laserRight = new DigitalInput(1);
-
 
   private SparkMax beltMotor = new SparkMax(1, CAN_s1.TransferCan, MotorType.kBrushless);
 
@@ -37,7 +37,6 @@ public class TransferSubsystem extends SubsystemBase {
 
   private final TalonFXConfiguration kickerConfig = new TalonFXConfiguration();
   private final SparkMaxConfig beltConfig = new SparkMaxConfig();
-
 
 
 
@@ -60,7 +59,7 @@ public class TransferSubsystem extends SubsystemBase {
 
   
   public void setSpeeds(double beltSpeed, double kickerSpeed){
-    beltMotor.set(beltSpeed);
+    beltMotor.setThrottle(beltSpeed);
     kickerMotor.setControl(Power.withOutput(kickerSpeed));
   }
 
@@ -77,7 +76,7 @@ public class TransferSubsystem extends SubsystemBase {
   }
   @Override
   public void periodic(){
-    SmartDashboard.putBoolean("leftTransfer", laserLeft.get());
-    SmartDashboard.putBoolean("rightTransfer", laserRight.get());
+    Logger.recordOutput("leftTransfer", laserLeft.get());
+    Logger.recordOutput("rightTransfer", laserRight.get());
   }
 }
