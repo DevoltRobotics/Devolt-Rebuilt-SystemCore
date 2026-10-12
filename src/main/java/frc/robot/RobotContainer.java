@@ -22,6 +22,8 @@ import org.wpilib.command2.button.CommandXboxController;
 import org.wpilib.command2.button.RobotModeTriggers;
 import org.wpilib.command2.button.Trigger;
 import org.wpilib.command2.sysid.SysIdRoutine.Direction;
+import org.wpilib.driverstation.Gamepad.Button;
+
 import frc.robot.Commands.SOTFCommand;
 import frc.robot.Constants.PoseinField;
 import frc.robot.Constants.TurretsPos;
@@ -31,6 +33,7 @@ import frc.robot.Subsystems.IntakeSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TransferSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
         private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -45,7 +48,7 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private final SwerveTelemetry logger = new SwerveTelemetry(MaxSpeed);
-    
+
     public final CommandGamepad joystick = new CommandGamepad(0);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
@@ -109,21 +112,19 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        joystick.rightBumper().onTrue(new ParallelCommandGroup(
-        intakeSubsystem.pivotDownCMD(),    
-        intakeSubsystem.IntakeinCMD(intakeSubsystem)));
+        joystick.rightBumper().onTrue(
+            new ParallelCommandGroup(
+                intakeSubsystem.pivotDownCMD(),    
+                intakeSubsystem.IntakeinCMD(intakeSubsystem)
+            )
+        );
 
         joystick.rightBumper().onFalse(intakeSubsystem.pivotDownSafeCMD());
     
         joystick.rightBumper().onFalse(intakeSubsystem.IntakeStopCMD(intakeSubsystem));
 
-        Trigger povUp = new Trigger(() -> joystick.getHID().getPOV() == 1);
-        Trigger povDown = new Trigger(() -> joystick.getHID().getPOV() == 4);
-        Trigger povRight = new Trigger(() -> joystick.getHID().getPOV() == 2);
-        Trigger povLeft = new Trigger(() -> joystick.getHID().getPOV() == 8);
-
-        povDown.onTrue(intakeSubsystem.pivotDownSafeCMD());
-        povUp.onTrue(intakeSubsystem.pivotUpCMD());
+        joystick.button(Button.DPAD_DOWN).onTrue(intakeSubsystem.pivotDownSafeCMD());
+        joystick.button(Button.DPAD_UP).onTrue(intakeSubsystem.pivotUpCMD());
 
         joystick.leftBumper().onTrue(transferSubsystem.TransferShootCMD(transferSubsystem));
         joystick.leftBumper().onFalse(transferSubsystem.StopTransferCMD(transferSubsystem));
@@ -131,17 +132,12 @@ public class RobotContainer {
         joystick.rightStick().onTrue(turretLeftSubsystem.SetTurretPosCMD(0));
         joystick.leftStick().onTrue(turretLeftSubsystem.SetTurretPosCMD(89));
 
-        povRight.onTrue(shooterLeftSubsystem.SetVelocityCMD(100));
-        povLeft.onTrue(shooterRightSubsystem.SetVelocityCMD(17));
+        joystick.button(Button.DPAD_RIGHT).onTrue(shooterLeftSubsystem.SetVelocityCMD(100));
+        joystick.button(Button.DPAD_LEFT).onTrue(shooterRightSubsystem.SetVelocityCMD(17));
 
-        joystick.a().onTrue(turretLeftSubsystem.resetOffsetCMD());
-
-        joystick.x().onTrue(new SOTFCommand(drivetrain, shooterLeftSubsystem, turretLeftSubsystem));
-
-        joystick.y().onTrue(new InstantCommand(()->drivetrain.resetRotation(new Rotation2d(0))));
-
-
-
+        joystick.button(Button.FACE_DOWN).onTrue(turretLeftSubsystem.resetOffsetCMD());
+        joystick.button(Button.FACE_LEFT).onTrue(new SOTFCommand(drivetrain, shooterLeftSubsystem, turretLeftSubsystem));
+        joystick.button(Button.FACE_UP).onTrue(new InstantCommand(()->drivetrain.resetRotation(new Rotation2d(0))));
     }
 
     public Command getAutonomousCommand() {
