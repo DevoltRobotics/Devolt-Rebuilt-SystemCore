@@ -28,7 +28,6 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-      Logger.recordOutput("Driver/POV", m_robotContainer.joystick.getHID().getPOV());
 
     /*
      * This example of adding Limelight is very simple and may not be sufficient for on-field use.
@@ -41,7 +40,7 @@ public class Robot extends LoggedRobot {
     if (kUseLimelight) {
       var driveState = m_robotContainer.drivetrain.getState();
       double headingDeg = driveState.Pose.getRotation().getDegrees();
-      double omegaRps = Units.radiansToRotations(driveState.Speeds.omega);
+      double omegaRps = Units.radiansToRotations(driveState.Velocity.omega);
 
       LimelightHelpers.SetRobotOrientation("limelight", headingDeg, 0, 0, 0, 0, 0);
       var llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");

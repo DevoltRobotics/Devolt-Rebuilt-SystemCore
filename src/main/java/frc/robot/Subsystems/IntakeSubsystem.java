@@ -16,7 +16,6 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.AbsoluteEncoderConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -27,12 +26,14 @@ import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.hardware.bus.CANPort;
+
 import frc.robot.Constants.CANId.CAN_s1;
 
 public class IntakeSubsystem extends SubsystemBase {
 
-  private TalonFX rollerMotor = new TalonFX(CAN_s1.IntakeCan, CANBus.systemCore(1));
-  private SparkMax pivot = new SparkMax(1, CAN_s1.PivotCan, MotorType.kBrushless);
+  private TalonFX rollerMotor = new TalonFX(CAN_s1.IntakeCan, new CANBus(CANPort.CAN_S2));
+  private SparkMax pivot = new SparkMax(CANPort.CAN_S1, CAN_s1.PivotCan, MotorType.kBrushless);
 
   private double desiredPosition = 0.3;
 
@@ -98,7 +99,7 @@ public class IntakeSubsystem extends SubsystemBase {
   public void periodic() {
     pivotPID.setSetpoint(desiredPosition);
 
-    PivotOut = pivotPID.calculate(pivotEncoder.getPosition());
+    PivotOut = pivotPID.calculate(pivotEncoder.getPosition().get());
 
     
 

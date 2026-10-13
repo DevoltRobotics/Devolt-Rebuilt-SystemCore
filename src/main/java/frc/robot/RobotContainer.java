@@ -18,14 +18,10 @@ import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.ParallelCommandGroup;
-import org.wpilib.command2.button.CommandXboxController;
 import org.wpilib.command2.button.RobotModeTriggers;
-import org.wpilib.command2.button.Trigger;
-import org.wpilib.command2.sysid.SysIdRoutine.Direction;
 import org.wpilib.driverstation.Gamepad.Button;
 
 import frc.robot.Commands.SOTFCommand;
-import frc.robot.Constants.PoseinField;
 import frc.robot.Constants.TurretsPos;
 import frc.robot.Constants.CANId.CAN_s2;
 import frc.robot.Subsystems.CommandSwerveDrivetrain;
@@ -44,8 +40,6 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-    private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private final SwerveTelemetry logger = new SwerveTelemetry(MaxSpeed);
 
@@ -63,7 +57,7 @@ public class RobotContainer {
     public final ShooterSubsystem shooterRightSubsystem = new ShooterSubsystem(CAN_s2.RFlywheelCan, drivetrain.getState().Pose);
     //public final TurretSubsystem turretRightSubsystem = new TurretSubsystem(CAN_s2.RTurretCan);
     
-    public final Limelight limelight = new Limelight("");
+    public final Limelight limelight = new Limelight("limelight");
 
     public RobotContainer() {
         configureBindings();
@@ -81,8 +75,8 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (1-joystick.getRawAxis(2)*.8)) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * (1-joystick.getRawAxis(2)*.8)) // Drive left with negative X (left)
+                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (1-joystick.getLeftTrigger()*.8)) // Drive forward with negative Y (forward)
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * (1-joystick.getLeftTrigger()*.8)) // Drive left with negative X (left)
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
@@ -93,9 +87,8 @@ public class RobotContainer {
         RobotModeTriggers.disabled().whileTrue(
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
-
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
+        joystick.button(1).whileTrue(drivetrain.applyRequest(() -> brake));;
+        joystick.button(2).whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
 

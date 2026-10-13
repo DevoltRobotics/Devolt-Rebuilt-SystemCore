@@ -10,7 +10,6 @@ import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.system.Timer;
 import org.wpilib.command2.Command;
 import org.wpilib.driverstation.Alliance;
-import org.wpilib.driverstation.DriverStation;
 import org.wpilib.driverstation.MatchState;
 
 import frc.robot.ShooterController;
@@ -89,7 +88,7 @@ public class SOTFCommand extends Command {
     Logger.recordOutput("Chasis speed vamg", Math.hypot(speeds.vx, speeds.vy));
 
 
-    Logger.recordOutput(turret.getN() + "/SOTF/turretFieldPos", new Pose2d(turretFieldPos, pose.getRotation().plus(turret.getAngle())));
+    Logger.recordOutput(turret.getName() + "/SOTF/turretFieldPos", new Pose2d(turretFieldPos, pose.getRotation().plus(turret.getAngle())));
 
     ShooterResult result = ShooterController.calculate(
         turretFieldPos,

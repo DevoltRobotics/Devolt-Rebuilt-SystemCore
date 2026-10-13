@@ -21,6 +21,7 @@ import org.littletonrobotics.junction.Logger;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.hardware.bus.CANPort;
 import org.wpilib.hardware.discrete.DigitalInput;
 
 import frc.robot.Constants.CANId.CAN_s1;
@@ -30,9 +31,9 @@ public class TransferSubsystem extends SubsystemBase {
   private DigitalInput laserLeft = new DigitalInput(0);
   private DigitalInput laserRight = new DigitalInput(1);
 
-  private SparkMax beltMotor = new SparkMax(1, CAN_s1.TransferCan, MotorType.kBrushless);
+  private SparkMax beltMotor = new SparkMax(CANPort.CAN_S1, CAN_s1.TransferCan, MotorType.kBrushless);
 
-  private TalonFX kickerMotor = new TalonFX(CAN_s2.KickerCan, CANBus.systemCore(2));
+  private TalonFX kickerMotor = new TalonFX(CAN_s2.KickerCan, new CANBus(CANPort.CAN_S2));
   private DutyCycleOut Power = new DutyCycleOut(0);
 
   private final TalonFXConfiguration kickerConfig = new TalonFXConfiguration();

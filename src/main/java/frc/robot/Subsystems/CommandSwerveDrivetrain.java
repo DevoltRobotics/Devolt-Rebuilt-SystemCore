@@ -1,12 +1,10 @@
 package frc.robot.Subsystems;
 
-import static org.wpilib.units.Units.*;
 
 import java.util.function.Supplier;
 
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Subsystem;
-import org.wpilib.command2.sysid.SysIdRoutine;
 import org.wpilib.driverstation.Alliance;
 import org.wpilib.driverstation.DriverStationErrors;
 import org.wpilib.driverstation.MatchState;
@@ -18,7 +16,6 @@ import org.wpilib.math.numbers.N3;
 import org.wpilib.system.Notifier;
 import org.wpilib.system.RobotController;
 
-import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.alerts.AlertableCollection;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
@@ -58,16 +55,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.ApplyRobotVelocity pathApplyRobotVelocity = new SwerveRequest.ApplyRobotVelocity();
 
     /* Swerve requests to apply during SysId characterization */
-    private final SwerveRequest.SysIdSwerveTranslation translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
-    private final SwerveRequest.SysIdSwerveSteerGains steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
-    private final SwerveRequest.SysIdSwerveRotation rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
+    // private final SwerveRequest.SysIdSwerveTranslation translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
+    //private final SwerveRequest.SysIdSwerveSteerGains steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
+    //private final SwerveRequest.SysIdSwerveRotation rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
     /** SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
-    private final SysIdRoutine sysIdRoutineTranslation = new SysIdRoutine(
+    /**private final SysIdRoutine sysIdRoutineTranslation = new SysIdRoutine(
         new SysIdRoutine.Config(
             null,        // Use default ramp rate (1 V/s)
             Volts.of(4), // Reduce dynamic step voltage to 4 V to prevent brownout
-            null,        // Use default timeout (10 s)
+            null,        // Use default timeout (10 s)s
             // Log state with SignalLogger class
             state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())
         ),
@@ -76,9 +73,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             null,
             this
         )
-    );
+    );*/
 
-    /** SysId routine for characterizing steer. This is used to find PID gains for the steer motors. */
+    /** SysId routine for characterizing steer. This is used to find PID gains for the steer motors. 
     private final SysIdRoutine sysIdRoutineSteer = new SysIdRoutine(
         new SysIdRoutine.Config(
             null,        // Use default ramp rate (1 V/s)
@@ -92,37 +89,33 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             null,
             this
         )
-    );
+    );*/
 
     /**
      * SysId routine for characterizing rotation.
      * This is used to find PID gains for the FieldCentricFacingAngle HeadingController.
      * See the documentation of SwerveRequest.SysIdSwerveRotation for info on importing the log to SysId.
-     */
+     
     private final SysIdRoutine sysIdRoutineRotation = new SysIdRoutine(
         new SysIdRoutine.Config(
-            /* This is in radians per second², but SysId only supports "volts per second" */
+            
             Volts.of(Math.PI / 6).per(Second),
-            /* This is in radians per second, but SysId only supports "volts" */
             Volts.of(Math.PI),
-            null, // Use default timeout (10 s)
-            // Log state with SignalLogger class
+            null, 
             state -> SignalLogger.writeString("SysIdRotation_State", state.toString())
         ),
         new SysIdRoutine.Mechanism(
             output -> {
-                /* output is actually radians per second, but SysId only supports "volts" */
                 setControl(rotationCharacterization.withRotationalRate(output.in(Volts)));
-                /* also log the requested output for SysId */
                 SignalLogger.writeDouble("Rotational_Rate", output.in(Volts));
             },
             null,
             this
         )
-    );
+    );*/
 
     /** The SysId routine to test */
-    private SysIdRoutine sysIdRoutineToApply = sysIdRoutineTranslation;
+    //private SysIdRoutine sysIdRoutineToApply = sysIdRoutineTranslation;
 
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -272,9 +265,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param direction Direction of the SysId Quasistatic test
      * @return Command to run
      */
-    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    /*public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
         return sysIdRoutineToApply.quasistatic(direction);
-    }
+    }*/
 
     /**
      * Runs the SysId Dynamic test in the given direction for the routine
@@ -283,9 +276,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param direction Direction of the SysId Dynamic test
      * @return Command to run
      */
-    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    /*public Command sysIdDynamic(SysIdRoutine.Direction direction) {
         return sysIdRoutineToApply.dynamic(direction);
-    }
+    }*/
 
     @Override
     public void periodic() {

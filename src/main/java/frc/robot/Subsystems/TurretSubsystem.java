@@ -19,15 +19,14 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import org.wpilib.math.controller.PIDController;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
-import org.wpilib.smartdashboard.Mechanism2d;
-import org.wpilib.smartdashboard.MechanismLigament2d;
-import org.wpilib.smartdashboard.MechanismRoot2d;
+
 import org.wpilib.util.Color;
 import org.wpilib.util.Color8Bit;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.InstantCommand;
 import org.wpilib.command2.SubsystemBase;
+import org.wpilib.hardware.bus.CANPort;
 
 public class TurretSubsystem extends SubsystemBase {
 
@@ -86,14 +85,15 @@ public class TurretSubsystem extends SubsystemBase {
   // ------------------------------------------------
 
   public TurretSubsystem(int canId, Translation2d turretOffset) {
-    Lturret = new SparkMax(2, canId, MotorType.kBrushless);
+    Lturret = new SparkMax(CANPort.CAN_S1, canId, MotorType.kBrushless);
     this.turretOffset = turretOffset;
 
     TurretConfig
         .inverted(true)
         .idleMode(IdleMode.kBrake);
-    TurretConfig.encoder
-        .positionConversionFactor(7.2);
+    //TurretConfig.encoder.positionConversionFactor(7.2);
+    
+        
 
     Lturret.configure(TurretConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 

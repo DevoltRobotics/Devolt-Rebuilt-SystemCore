@@ -156,7 +156,7 @@ public class ShooterController {
         double d1 = ceil.getValue();
 
         double t = (velocity - v0) / (v1 - v0);
-        return MathUtil.interpolate(d0, d1, t);
+        return MathUtil.lerp(d0, d1, t);
     }
 
     public static double calculateAdjustedRps(double requiredVelocity) {
